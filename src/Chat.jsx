@@ -1,24 +1,49 @@
-import { useEffect } from "react";
-import { io } from "socket.io-client";
+import { useEffect, useState } from "react";
+import socket from "./socket";
 
+const profile = JSON.parse(localStorage.getItem("profile"));
 export default function Chat() {
+  const [value, setValue] = useState("");
+  const [messages, setMessages] = useState([]);
   useEffect(() => {
-    const socket = io(import.meta.env.VITE_API_URL);
-    socket.on("connect", () => {
-      console.log(socket.id);
-      socket.on("hello", (arg) => {
-        console.log(arg);
-      });
-      socket.emit("hi", {
-        message: `Xin chào, đã kết nối thành công tới ${socket.id}`,
-      });
-    });
-    socket.on("disconnect", () => {
-      console.log(socket.id); // undefined
+    socket.auth = {
+      _id: profile._id,
+    };
+    socket.connect();
+    socket.on("receive private message", (data) => {
+      const content = data.content;
+      setMessages((messages) => [...messages, content]);
     });
     return () => {
       socket.disconnect();
     };
   }, []);
-  return <div>Chat</div>;
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setValue("");
+    socket.emit("private message", {
+      content: value,
+      to: "65e987dbae9576590e5cc7c9", // user_id của client 2
+    });
+  };
+  return (
+    <div>
+      <h1>Chat</h1>
+      <div>
+        {messages.map((message, index) => (
+          <div key={index}>
+            <div>{message}</div>
+          </div>
+        ))}
+      </div>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          onChange={(e) => setValue(e.target.value)}
+          value={value}
+        />
+        <button type="submit">Send</button>
+      </form>
+    </div>
+  );
 }

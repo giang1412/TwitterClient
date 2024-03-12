@@ -33,6 +33,7 @@ const googleOAuthUrl = getGoogleAuthUrl();
 export default function Home() {
   const isAuthenticated = Boolean(localStorage.getItem("access_token"));
   const profile = JSON.parse(localStorage.getItem("profile")) || {};
+  console.log(profile.email);
   const logout = () => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
